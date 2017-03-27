@@ -44,10 +44,13 @@ plot(prod.tot.adjusted.diff)
 
 #Test de Dickey-Fuller de racine unitaire
 adf.test(prod.tot.adjusted.diff, alternative="stationary")
+adf.test(diff(prod.tot), alternative="stationary")
 
 acf(prod.tot.adjusted.diff)
 ```
 
+La p-value du test étant inférieure à 0.05, on rejette l'hypothèse nulle : la série désaisonnalisée et différenciée une fois est bien stationnaire. 
+Remarque : aussi vrai si on n'a pas désaisonnalisé avant ! 
 
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
