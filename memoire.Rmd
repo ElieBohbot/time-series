@@ -1,0 +1,53 @@
+---
+title: "Mémoire Time Series"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Données
+
+```{r, fig.height=3, fig.width=8, message=FALSE, warning=FALSE}
+library(ggplot2) ; theme_set(theme_bw())
+d <- read.csv(file="electricite_2.csv",header=TRUE) 
+#d <- t(d)
+#summary(d)
+prod.tot <- ts(d['Production.totale.brute.d.electricite..en.GWh.'], frequency = 12)
+plot(prod.tot)
+
+decompose.prod.tot <- decompose(prod.tot, "additive")
+#stl.prod.tot <- stl(d['Production.totale.brute.d.electricite..en.GWh.'],"periodic",1,NULL)
+plot(decompose.prod.tot)
+rand <- na.omit(decompose.prod.tot$random)
+acf(prod.tot)
+acf(rand)
+
+plot(prod.tot)
+plot(diff(prod.tot))
+plot(acf(diff(prod.tot)))
+plot(diff(diff(prod.tot)))
+plot(acf(diff(diff(prod.tot))))
+plot(diff(diff(diff(prod.tot))))
+
+summary(prod.tot)
+```
+
+```{r}
+#stl.prod.tot <- stl(prod.tot,s.window = "periodic",s.degree = 1)
+library(tseries)
+prod.tot.adjusted <- prod.tot - decompose.prod.tot$seasonal
+plot(prod.tot.adjusted)
+prod.tot.adjusted.diff <- diff(prod.tot.adjusted)
+plot(prod.tot.adjusted.diff)
+
+#Test de Dickey-Fuller de racine unitaire
+adf.test(prod.tot.adjusted.diff, alternative="stationary")
+
+acf(prod.tot.adjusted.diff)
+```
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
