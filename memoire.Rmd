@@ -37,16 +37,28 @@ summary(prod.tot)
 ```{r}
 #stl.prod.tot <- stl(prod.tot,s.window = "periodic",s.degree = 1)
 library(tseries)
+library(forecast)
 prod.tot.adjusted <- prod.tot - decompose.prod.tot$seasonal
 plot(prod.tot.adjusted)
 prod.tot.adjusted.diff <- diff(prod.tot.adjusted)
 plot(prod.tot.adjusted.diff)
+
+prod.tot.diff <- diff(prod.tot)
+acf(prod.tot.diff)
+pacf(prod.tot.diff)
 
 #Test de Dickey-Fuller de racine unitaire
 adf.test(prod.tot.adjusted.diff, alternative="stationary")
 adf.test(diff(prod.tot), alternative="stationary")
 
 acf(prod.tot.adjusted.diff)
+pacf(prod.tot.adjusted.diff)
+
+auto.arima(prod.tot.adjusted.diff, ic="bic")
+```
+
+```{r}
+arima(prod.tot.adjusted.diff, order=c(1,0,1), include.mean = F)
 ```
 
 La p-value du test étant inférieure à 0.05, on rejette l'hypothèse nulle : la série désaisonnalisée et différenciée une fois est bien stationnaire. 
