@@ -76,7 +76,12 @@ plot(forecast(holt.winters, h = 12))
 ```{r}
 stl.prod.tot <- stl(ts2, s.window = 24)
 plot(stl.prod.tot)
-  ```
+decomposed <- stl.prod.tot$time.series
+remainder <- decomposed[,"remainder"]
+summary(remainder)
+plot(remainder)
+acf(remainder)
+```
 
 
 
