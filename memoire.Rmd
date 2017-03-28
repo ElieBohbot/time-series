@@ -83,6 +83,7 @@ plot(forecast.hw)
 ```{r}
 stl.prod.tot <- stl(ts2, s.window = 24)
 plot(stl.prod.tot)
+
 ```
 On peut alors recommencer ce qu'on a fait : on estime le reste comme un processus ARIMA. Il nous reste ensuite à rajouter les saisonnalités. Nous pourrions alors envisagés de forecast le modèle. 
 
@@ -91,10 +92,12 @@ forecast.stl <- forecast(stl.prod.tot, h = 24)
 plot(forecast.stl)
 ```
 Ici, on prédit directement par un forecast. On oublie qu'il y a des restes, on les considère nuls et on ne fait donc pas le travail d'ARIMA sur les restes. 
-
-
 ```{r}
-
+decomposed <- stl.prod.tot$time.series
+remainder <- decomposed[,"remainder"]
+summary(remainder)
+plot(remainder)
+acf(remainder)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
