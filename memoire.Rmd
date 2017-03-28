@@ -14,6 +14,9 @@ library(ggplot2) ; theme_set(theme_bw())
 d <- read.csv(file="electricite_2.csv",header=TRUE) 
 #d <- t(d)
 #summary(d)
+dim(d['Production.totale.brute.d.electricite..en.GWh.'])
+column <- d['Production.totale.brute.d.electricite..en.GWh.']
+ts2 <- ts(column[1:length(t(column)), 1], frequency = 12)
 prod.tot <- ts(d['Production.totale.brute.d.electricite..en.GWh.'], frequency = 12)
 plot(prod.tot)
 
@@ -54,7 +57,7 @@ adf.test(diff(prod.tot), alternative="stationary")
 acf(prod.tot.adjusted.diff)
 pacf(prod.tot.adjusted.diff)
 
-auto.arima(prod.tot.adjusted.diff, ic="bic")
+auto.arima(prod.tot.adjusted.diff, max.Q = 5, ic="bic", trace = T, stationary = T)
 ```
 
 ```{r}
@@ -63,6 +66,18 @@ arima(prod.tot.adjusted.diff, order=c(1,0,1), include.mean = F)
 
 La p-value du test étant inférieure à 0.05, on rejette l'hypothèse nulle : la série désaisonnalisée et différenciée une fois est bien stationnaire. 
 Remarque : aussi vrai si on n'a pas désaisonnalisé avant ! 
+
+
+```{r}
+holt.winters <- HoltWinters(prod.tot)
+plot(holt.winters)
+plot(forecast(holt.winters, h = 12))
+```
+```{r}
+stl.prod.tot <- stl(ts2, s.window = 24)
+plot(stl.prod.tot)
+  ```
+
 
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
