@@ -7,11 +7,12 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Données
+## Partie Série Temporelle
 
 ```{r, fig.height=3, fig.width=8, message=FALSE, warning=FALSE}
 library(ggplot2) ; theme_set(theme_bw())
 d <- read.csv(file="electricite_2.csv",header=TRUE) 
+summary(d)
 #d <- t(d)
 #summary(d)
 dim(d['Production.totale.brute.d.electricite..en.GWh.'])
@@ -36,6 +37,7 @@ plot(diff(diff(diff(prod.tot))))
 
 summary(prod.tot)
 ```
+
 
 ```{r}
 #stl.prod.tot <- stl(prod.tot,s.window = "periodic",s.degree = 1)
@@ -100,4 +102,33 @@ plot(remainder)
 acf(remainder)
 ```
 
+<<<<<<< Updated upstream
+=======
+
+## Processus de GARCH pour estimation et prédiction sur le S&P500
+
+```{r, fig.height=3, fig.width=8, message=FALSE, warning=FALSE}
+library(ggplot2) ; theme_set(theme_bw())
+d <- read.csv(file="tableau.csv",header=F, sep = ";") 
+summary(d)
+column <- d$V1
+sp <- ts(column)
+plot(sp)
+c = NULL
+for (i in 1:length(sp)-2){
+  c = c(c,log(sp[i+1]/sp[i]))
+}
+c <- na.omit(c)
+rendement <- ts(c)
+plot(rendement)
+summary(rendement)
+```
+
+```{r}
+library(fGarch)
+garchFit(formula = ~ garch(1,1),data = rendement,init.rec = "mci",delta=2,include.mean=F)
+```
+
+
+>>>>>>> Stashed changes
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
