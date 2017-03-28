@@ -44,8 +44,13 @@ library(forecast)
 prod.tot.adjusted <- prod.tot - decompose.prod.tot$seasonal
 plot(prod.tot.adjusted)
 prod.tot.adjusted.diff <- diff(prod.tot.adjusted)
-plot(prod.tot.adjusted.diff)
 
+# ACF et PACF de la prod.tot ajustée des saisonalités et différenciées
+plot(prod.tot.adjusted.diff)
+acf(prod.tot.adjusted.diff)
+pacf(prod.tot.adjusted.diff)
+
+# ACF et PACF de la prod.tot différenciée
 prod.tot.diff <- diff(prod.tot)
 acf(prod.tot.diff)
 pacf(prod.tot.diff)
@@ -53,31 +58,43 @@ pacf(prod.tot.diff)
 #Test de Dickey-Fuller de racine unitaire
 adf.test(prod.tot.adjusted.diff, alternative="stationary")
 adf.test(diff(prod.tot), alternative="stationary")
-
-acf(prod.tot.adjusted.diff)
-pacf(prod.tot.adjusted.diff)
-
-auto.arima(prod.tot.adjusted.diff, max.Q = 5, ic="bic", trace = T, stationary = T)
 ```
-
-```{r}
-arima(prod.tot.adjusted.diff, order=c(1,0,1), include.mean = F)
-```
-
 La p-value du test étant inférieure à 0.05, on rejette l'hypothèse nulle : la série désaisonnalisée et différenciée une fois est bien stationnaire. 
 Remarque : aussi vrai si on n'a pas désaisonnalisé avant ! 
 
 
 ```{r}
+arima.model <- auto.arima(prod.tot.adjusted.diff, max.Q = 3, max.p = 6, ic="bic", trace = T, stationary = F)
+acf(arima.model$residuals)
+pacf(arima.model$residuals)
+
+plot(forecast(arima.model, h = 36))
+```
+On test ici un modèle ARIMA sur notre série stationaire. On test tous les modèles ARIMA possibles grâce à la fonction de R. Une fois qu'on connait les paramètres, il suffit d'appeler le package forecast pour prédire le future de notre série. Ensuite, il suffit de revenir à la série de base en prenant des sommes cumulées et en rajoutant la saisonnalité. 
+
+Re traitons le processus en ne prenant que la 
+```{r}
 holt.winters <- HoltWinters(prod.tot)
 plot(holt.winters)
-plot(forecast(holt.winters, h = 12))
+forecast.hw <- forecast(holt.winters, h = 24)
+plot(forecast.hw)
 ```
+
 ```{r}
 stl.prod.tot <- stl(ts2, s.window = 24)
 plot(stl.prod.tot)
-  ```
+```
+On peut alors recommencer ce qu'on a fait : on estime le reste comme un processus ARIMA. Il nous reste ensuite à rajouter les saisonnalités. Nous pourrions alors envisagés de forecast le modèle. 
+
+```{r}
+forecast.stl <- forecast(stl.prod.tot, h = 24)
+plot(forecast.stl)
+```
+Ici, on prédit directement par un forecast. On oublie qu'il y a des restes, on les considère nuls et on ne fait donc pas le travail d'ARIMA sur les restes. 
 
 
+```{r}
+
+```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
