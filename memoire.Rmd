@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, fig.height=3, fig.width=8, message=FALSE, warning=FALSE}
 library(ggplot2) ; theme_set(theme_bw())
 d <- read.csv(file="electricite_2.csv",header=TRUE) 
-summary(d)
 #d <- t(d)
 #summary(d)
 dim(d['Production.totale.brute.d.electricite..en.GWh.'])
@@ -38,6 +37,14 @@ plot(diff(diff(diff(prod.tot))))
 summary(prod.tot)
 ```
 
+```{r}
+rand <- na.omit(decompose.prod.tot$random)
+acf(prod.tot)
+acf(rand)
+
+```
+
+
 
 ```{r}
 #stl.prod.tot <- stl(prod.tot,s.window = "periodic",s.degree = 1)
@@ -57,16 +64,14 @@ prod.tot.diff <- diff(prod.tot)
 acf(prod.tot.diff)
 pacf(prod.tot.diff)
 
-#Test de Dickey-Fuller de racine unitaire
-adf.test(prod.tot.adjusted.diff, alternative="stationary")
-adf.test(diff(prod.tot), alternative="stationary")
+
 ```
 La p-value du test étant inférieure à 0.05, on rejette l'hypothèse nulle : la série désaisonnalisée et différenciée une fois est bien stationnaire. 
 Remarque : aussi vrai si on n'a pas désaisonnalisé avant ! 
 
 
 ```{r}
-arima.model <- auto.arima(prod.tot.adjusted.diff, max.Q = 3, max.p = 6, ic="bic", trace = T, stationary = F)
+arima.model <- auto.arima(prod.tot.adjusted.diff, max.Q = 3, max.p = 6, ic="bic", trace = T, stationary = T)
 acf(arima.model$residuals)
 pacf(arima.model$residuals)
 
@@ -97,10 +102,21 @@ Ici, on prédit directement par un forecast. On oublie qu'il y a des restes, on 
 ```{r}
 decomposed <- stl.prod.tot$time.series
 remainder <- decomposed[,"remainder"]
-summary(remainder)
-plot(remainder)
+season <- decomposed[,"seasonal"]
+plot(season)
 acf(remainder)
+
+prod.tot.adjusted <- prod.tot - season
+prod.tot.adjusted.diff <- diff(prod.tot.adjusted)
+plot(prod.tot.adjusted.diff)
 ```
+```{r}
+#Test de Dickey-Fuller de racine unitaire
+adf.test(prod.tot.adjusted.diff, alternative="stationary")
+
+
+```
+
 
 <<<<<<< Updated upstream
 =======
@@ -122,11 +138,34 @@ c <- na.omit(c)
 rendement <- ts(c)
 plot(rendement)
 summary(rendement)
+rendement_sq <- rendement*rendement
+plot(rendement_sq)
 ```
 
 ```{r}
+arima.model <- auto.arima(rendement, max.Q = 3, max.p = 6, ic="bic", trace = T, stationary = T)
+```
+
+
+```{r}
 library(fGarch)
-garchFit(formula = ~ garch(1,1),data = rendement,init.rec = "mci",delta=2,include.mean=F)
+garch.model <- garchFit(formula = ~ garch(1,1),data = rendement,init.rec = "mci",delta=2,include.mean=F)
+```
+
+```{r}
+residuals <- residuals(garch.model)
+acf(residuals)
+```
+```{r}
+predict(object=garch.model, n.ahead=100, trace=T, plot=T)
+```
+
+```{r}
+plot(garch.model)
+```
+```{r}
+garch.model.asym <- garchFit(formula = ~ aparch(1,1),data = rendement,init.rec = "mci",delta=2,include.mean=F)
+plot(garch.model.asym)
 ```
 
 
